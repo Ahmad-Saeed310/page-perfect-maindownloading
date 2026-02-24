@@ -249,7 +249,7 @@ export function TemplateBrowser({ value, onChange, isOpen, onToggle }: TemplateB
   }
 
   return (
-    <div className="fixed left-0 top-0 h-full w-72 sm:w-80 bg-card border-r border-border shadow-xl z-40 flex flex-col">
+    <div className="fixed left-0 top-0 h-full w-72 sm:w-80 bg-card border-r border-border shadow-xl z-40 flex flex-col ">
 
       {/* Header */}
       <div className="p-3 border-b border-border space-y-2">

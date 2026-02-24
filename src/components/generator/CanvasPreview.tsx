@@ -14,6 +14,7 @@ type CanvasTool = 'select' | 'text' | 'move';
 interface CanvasPreviewProps {
   paperSize: PaperSize;
   templateId: string;
+  templateName?: string;
   config: TemplateConfig;
   orientation: Orientation;
   notepadText?: string;
@@ -43,6 +44,7 @@ const TOOL_CONFIG = {
 export function CanvasPreview({
   paperSize,
   templateId,
+  templateName,
   config,
   orientation,
   notepadText,
@@ -58,7 +60,7 @@ export function CanvasPreview({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fullscreenRef = useRef<HTMLDivElement>(null);
-  const [activeTool, setActiveTool] = useState<CanvasTool>('select');
+  const [activeTool, setActiveTool] = useState<CanvasTool>('text');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [inputPosition, setInputPosition] = useState({ x: 0, y: 0 });
@@ -562,7 +564,7 @@ export function CanvasPreview({
       </div>
 
       {/* Desktop Toolbar - Hidden on mobile */}
-      <div className="hidden md:block mt-2">
+      <div className="hidden md:flex items-center gap-3 mt-2">
         <div className={cn(
           "bg-card/80 backdrop-blur-lg border border-border/50 rounded-xl shadow-lg transition-all duration-300",
           isToolbarCompact ? "p-1" : "p-2"
@@ -683,6 +685,13 @@ export function CanvasPreview({
             </div>
           )}
         </div>
+
+        {templateName && (
+          <div className="flex items-center gap-1.5 shrink-0 bg-card/80 backdrop-blur-lg border border-border/50 rounded-xl shadow-lg px-3 py-1">
+            <span className="text-xs font-medium text-foreground">{templateName}</span>
+            <span className="text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">Live Preview</span>
+          </div>
+        )}
       </div>
 
       {/* Mobile FAB Menu */}

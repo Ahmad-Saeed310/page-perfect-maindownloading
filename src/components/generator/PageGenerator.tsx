@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { PAPER_SIZES, PaperSize, Orientation, getEffectiveDimensions } from '@/lib/paperSizes';
+import { PAPER_SIZES, PaperSize, Orientation } from '@/lib/paperSizes';
 import { TEMPLATES, Template } from '@/lib/templateCategories';
 import { DEFAULT_CONFIGS, TemplateConfig, getTemplateConfig } from '@/lib/templateConfigs';
 import { TextElement, CanvasImageData } from '@/lib/canvasTypes';
@@ -134,10 +134,6 @@ export function PageGenerator() {
     };
   }, [template.id, lineColor, pageColor, lineGap]);
 
-  const effectiveDims = useMemo(() => 
-    getEffectiveDimensions(paperSize, orientation),
-    [paperSize, orientation]
-  );
 
   const handlePaperSizeChange = useCallback((size: PaperSize) => {
     setPaperSize(size);
@@ -189,32 +185,33 @@ export function PageGenerator() {
       />
 
       {/* Header - Compact on mobile */}
-      <header className="bg-card border-b border-border shadow-toolbar sticky top-0 z-10 bg-green-300">
+      <header className="bg-card border-b border-border shadow-toolbar sticky top-0 z-10 bg-emerald-800 backdrop-blur-sm">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowTemplateBrowser(!showTemplateBrowser)}
-              className="gap-1.5 h-8 px-2"
+              className="gap-1.5 h-8 px-2 bg-white"
             >
               <LayoutList className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Templates</span>
+              <span className="hidden sm:inline text-xs ">Templates</span>
             </Button>
             <div className="flex items-center gap-1.5 sm:gap-2 text-primary">
               <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-              <h1 className="text-sm sm:text-lg font-semibold text-foreground">
+              <h1 className="text-sm sm:text-lg font-semibold text-foreground text-white">
                 Page Generator
               </h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <h3>Blank Page</h3>
+            <h3 className='text-white'>Blank Page</h3>
+            <div className="h-4 w-px bg-border md:hidden" />
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFocusMode(true)}
-              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/30 hover:from-primary/10 hover:to-primary/20 bg-red-300"
+              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/30 hover:from-primary/10 hover:to-primary/20"
             >
               <PenLine className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
               <span className="hidden xs:inline text-xs sm:text-sm font-medium">Focus Mode</span>
@@ -223,30 +220,15 @@ export function PageGenerator() {
         </div>
       </header>
 
-      <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 flex-1 ">
+      <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 flex-1   ">
         {/* Mobile: Page preview on top */}
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Canvas Preview - Always visible at top on mobile, side on desktop */}
           <div className="lg:hidden">
-            <div className="bg-card rounded-lg sm:rounded-xl border border-border p-2 sm:p-3 mb-2 sm:mb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-medium text-foreground text-xs sm:text-sm">
-                    {template.name}
-                  </h2>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    {paperSize.name} • {effectiveDims.width} × {effectiveDims.height} mm
-                  </p>
-                </div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground bg-secondary px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
-                  Live
-                </div>
-              </div>
-            </div>
-
             <CanvasPreview
               paperSize={paperSize}
               templateId={template.id}
+              templateName={template.name}
               config={config}
               orientation={orientation}
               notepadText={notepadText}
@@ -272,28 +254,13 @@ export function PageGenerator() {
           </div>
 
           {/* Desktop layout: Side by side */}
-          <div className={cn('hidden lg:grid gap-6 transition-all duration-300', sidebarTab !== null ? 'lg:grid-cols-[1fr_320px]' : 'lg:grid-cols-[1fr_52px]')}>
+          <div className={cn('hidden lg:grid gap-6  transition-all duration-300', sidebarTab !== null ? 'lg:grid-cols-[1fr_320px]' : 'lg:grid-cols-[1fr_52px]')}>
             {/* Canvas Preview Area - Left side on desktop */}
-            <main className="flex flex-col">
-              <div className="bg-card rounded-xl border border-border p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-medium text-foreground">
-                      {template.name}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {paperSize.name} ({orientation}) • {effectiveDims.width} × {effectiveDims.height} mm
-                    </p>
-                  </div>
-                  <div className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">
-                    Live Preview
-                  </div>
-                </div>
-              </div>
-
+            <main className="flex flex-col items-center">
               <CanvasPreview
                 paperSize={paperSize}
                 templateId={template.id}
+                templateName={template.name}
                 config={config}
                 orientation={orientation}
                 notepadText={notepadText}
@@ -309,7 +276,7 @@ export function PageGenerator() {
             </main>
 
             {/* Sidebar Controls - Right side on desktop */}
-            <aside className="bg-card rounded-xl border border-border sticky top-20 flex flex-row max-h-[calc(100vh-100px)] overflow-hidden bg-red-300">
+            <aside className="bg-card rounded-xl border border-border sticky top-20 flex flex-row max-h-[calc(100vh-100px)] overflow-hidden ">
               {/* Content panel — visible when a tab is active */}
               {sidebarTab !== null && (
                 <ScrollArea className="flex-1 border-r border-border">
