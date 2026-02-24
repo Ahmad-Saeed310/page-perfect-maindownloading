@@ -410,7 +410,7 @@ export function CanvasPreview({
   // Canvas content component to avoid duplication
   const canvasContent = (
     <div 
-      className="relative rounded-lg overflow-hidden shadow-xl border border-border/30"
+      className="relative rounded-lg overflow-hidden shadow-xl border border-border/30 w-full"
       style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
     >
       <canvas
@@ -536,7 +536,7 @@ export function CanvasPreview({
   }
 
   return (
-    <div ref={containerRef} className="canvas-container relative flex flex-col items-center pb-20 md:pb-0">
+    <div ref={containerRef} className="canvas-container relative flex flex-col items-center pb-20 md:pb-0 w-[100%]">
       {/* Canvas with zoom */}
       <div className="overflow-auto max-w-full" style={{ maxHeight: isMobile ? '60vh' : '70vh' }}>
         {canvasContent}
