@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { TEMPLATES, TEMPLATE_CATEGORIES, Template, searchTemplates } from '@/lib/templateCategories';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,6 @@ import {
   Search,
   File,
   Square,
-  LayoutGrid,
   BookOpen,
   AlignLeft,
   Grid3X3,
@@ -35,7 +34,6 @@ import {
   Scissors,
   Tag,
   Layout,
-  ChevronLeft,
   ChevronRight,
   X,
   Octagon,
@@ -104,7 +102,7 @@ interface TemplateBrowserProps {
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   'file': File,
   'square': Square,
-  'layout-grid': LayoutGrid,
+  'layout-grid': Grid3X3,
   'book-open': BookOpen,
   'align-left': AlignLeft,
   'grid-3x3': Grid3X3,
@@ -194,31 +192,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   'axis-3d': Move3D,
 };
 
-const categoryIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  'basic': File,
-  'graph': Grid3X3,
-  'specialty-graph': Triangle,
-  'music-art': Music,
-  'notes-study': BookOpen,
-  'planners': Calendar,
-  'budgets': Wallet,
-  'lists': List,
-  'calendars': CalendarDays,
-  'teacher': GraduationCap,
-  'games': Gamepad2,
-  'sports': Trophy,
-  'crafts': Scissors,
-  'cards-tags': Tag,
-  'marketing': Layout,
-  '3d-technical': Box,
-  'targets': Target,
-};
 
 export function TemplateBrowser({ value, onChange, isOpen, onToggle }: TemplateBrowserProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const tabsRef = useRef<HTMLDivElement>(null);
-
   const filteredTemplates = useMemo(() => {
     let results = searchQuery ? searchTemplates(searchQuery) : TEMPLATES;
     if (selectedCategory !== 'all') {
@@ -228,12 +205,6 @@ export function TemplateBrowser({ value, onChange, isOpen, onToggle }: TemplateB
   }, [searchQuery, selectedCategory]);
 
   const selectedTemplate = TEMPLATES.find(t => t.id === value);
-
-  const scrollTabs = (direction: 'left' | 'right') => {
-    if (tabsRef.current) {
-      tabsRef.current.scrollBy({ left: direction === 'left' ? -160 : 160, behavior: 'smooth' });
-    }
-  };
 
   if (!isOpen) {
     return (
@@ -272,90 +243,22 @@ export function TemplateBrowser({ value, onChange, isOpen, onToggle }: TemplateB
         </div>
       </div>
 
-      {/* Category Tab Bar */}
-      <div className="border-b border-border bg-muted/20 relative flex items-center">
-        {/* Left scroll arrow */}
-        <button
-          onClick={() => scrollTabs('left')}
-          className="shrink-0 h-full px-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          aria-label="Scroll left"
+      {/* Category Dropdown */}
+      <div className="px-3 py-2 border-b border-border bg-muted/20">
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="w-full h-9 rounded-md border border-input bg-background px-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <ChevronLeft className="w-3.5 h-3.5" />
-        </button>
-
-        {/* Scrollable tabs */}
-        <div
-          ref={tabsRef}
-          className="flex overflow-x-auto scrollbar-none gap-0.5 py-1.5 px-0.5 flex-1"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {/* All tab */}
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={cn(
-              'shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 min-w-[52px]',
-              selectedCategory === 'all'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-            )}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span className="leading-none">All</span>
-          </button>
-
-          {/* Category tabs */}
-          {TEMPLATE_CATEGORIES.map(cat => {
-            const CatIcon = categoryIconMap[cat.id] || File;
-            const isActive = selectedCategory === cat.id;
-            // Shorten long category names for tab display
-            const shortName = cat.name
-              .replace(' & ', '/')
-              .replace('Specialty ', '')
-              .replace(' Resources', '')
-              .replace(' & Activities', '')
-              .replace(' & Recreation', '')
-              .replace(' & Hobbies', '')
-              .replace(' & Finance', '')
-              .replace(' & Organizers', '')
-              .replace(' & Tags', '')
-              .replace(' & Design', '')
-              .replace(' & Technical', '');
-
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={cn(
-                  'shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 min-w-[52px]',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-                )}
-                title={cat.name}
-              >
-                <CatIcon className="w-3.5 h-3.5" />
-                <span className="leading-none truncate max-w-[60px] text-center">{shortName}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Right scroll arrow */}
-        <button
-          onClick={() => scrollTabs('right')}
-          className="shrink-0 h-full px-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          aria-label="Scroll right"
-        >
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* Active category label */}
-      <div className="px-3 py-1.5 bg-muted/10 border-b border-border/50">
-        <p className="text-xs text-muted-foreground">
-          {selectedCategory === 'all'
-            ? `All templates · ${filteredTemplates.length}`
-            : `${TEMPLATE_CATEGORIES.find(c => c.id === selectedCategory)?.name ?? ''} · ${filteredTemplates.length}`}
+          <option value="all">All templates ({TEMPLATES.length})</option>
+          {TEMPLATE_CATEGORIES.map(cat => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground mt-1">
+          {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
           {searchQuery && ` · "${searchQuery}"`}
         </p>
       </div>
