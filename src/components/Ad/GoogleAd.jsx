@@ -39,7 +39,7 @@ const GoogleAd = ({ adClient, adSlot, style, className }) => {
       className={`adsbygoogle ${className || ""}`}
       style={{
         display: "block",
-        minHeight: "250px",
+        minHeight: "90px",
         width: "100%",
         backgroundColor: "#f3f3f3",
         ...style,
