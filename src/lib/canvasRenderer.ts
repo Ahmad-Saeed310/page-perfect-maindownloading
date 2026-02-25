@@ -17,16 +17,12 @@ export function renderWatermark(
   canvas: HTMLCanvasElement,
   scale: number
 ): void {
-  const fontSize = Math.max(10, 12 * scale);
+  const fontSize = Math.max(8, 9 * scale);
   ctx.font = `${fontSize}px 'Inter', system-ui, sans-serif`;
-  ctx.fillStyle = 'rgba(150, 150, 150, 0.3)';
+  ctx.fillStyle = 'rgba(150, 150, 150, 0.55)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  
-  // Add blur effect
-  ctx.filter = 'blur(0.5px)';
-  ctx.fillText('allprintablepages.com', canvas.width / 2, canvas.height - 10 * scale);
-  ctx.filter = 'none';
+  ctx.fillText('allprintablepages.com', canvas.width / 2, canvas.height - 8 * scale);
   ctx.textAlign = 'left';
 }
 

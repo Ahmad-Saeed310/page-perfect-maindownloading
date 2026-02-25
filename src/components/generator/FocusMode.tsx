@@ -10,7 +10,9 @@ import {
 import {
   X, Maximize2, Minimize2, PenLine, Save,
   Download, AlignJustify, FileText, Image, File, FileType2, ChevronDown,
+  Share2, Mail, MessageCircle, Copy, Check,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FocusModeProps {
   isOpen: boolean;
@@ -24,6 +26,23 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
   const [showLines, setShowLines] = useState(() => {
     return localStorage.getItem('blankpage-focus-lines') === 'true';
   });
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = window.location.href;
+  const shareText = 'Check out this free printable page tool!';
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success('Link copied!');
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const openShare = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
 
   // Load from localStorage
   useEffect(() => {
@@ -78,6 +97,8 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     .replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>');
 
+  const SITE_URL = 'allprintablepages.com';
+
   // ── Download: HTML ─────────────────────────────────────────────────────────
   const downloadHTML = () => {
     const html = `<!DOCTYPE html>
@@ -89,16 +110,21 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     body{margin:0;padding:2rem;background:#f5f5f4;font-family:'Inter',system-ui,sans-serif;}
     .page{max-width:800px;margin:0 auto;padding:3rem;min-height:100vh;
           font-size:1.125rem;line-height:1.625;white-space:pre-wrap;word-wrap:break-word;${lineCSS}}
+    .footer{text-align:center;padding:1.5rem 0 0.5rem;color:#a8a29e;font-size:0.75rem;}
+    .footer a{color:inherit;text-decoration:none;}
   </style>
 </head>
-<body><div class="page">${escapedHtml}</div></body>
+<body>
+  <div class="page">${escapedHtml}</div>
+  <div class="footer"><a href="https://${SITE_URL}">${SITE_URL}</a></div>
+</body>
 </html>`;
     blobDownload(html, 'text/html', 'html');
   };
 
   // ── Download: Plain Text ───────────────────────────────────────────────────
   const downloadTXT = () => {
-    blobDownload(text, 'text/plain', 'txt');
+    blobDownload(`${text}\n\n${SITE_URL}`, 'text/plain', 'txt');
   };
 
   // ── Download: PDF via jsPDF ────────────────────────────────────────────────
@@ -119,6 +145,13 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
       }
     };
 
+    const drawFooter = () => {
+      doc.setFontSize(8);
+      doc.setTextColor(168, 162, 158);
+      const tw = doc.getTextWidth(SITE_URL);
+      doc.textWithLink(SITE_URL, pw / 2 - tw / 2, ph - 8, { url: `https://${SITE_URL}` });
+    };
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
     const lines = doc.splitTextToSize(text || ' ', pw - margin * 2);
@@ -128,6 +161,7 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     let y = margin + lh;
     for (const line of lines) {
       if (y > ph - margin) {
+        drawFooter();
         doc.addPage();
         drawPageLines();
         y = margin + lh;
@@ -135,6 +169,7 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
       doc.text(line, margin, y);
       y += lh;
     }
+    drawFooter();
     doc.save(filename('pdf'));
   };
 
@@ -142,6 +177,7 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
   const downloadJPEG = () => {
     const canvas = document.createElement('canvas');
     const pad = 60;
+    const footerH = 40;
     const canvasWidth = 1000;
     const fontSize = 20;
     const lh = 32;
@@ -166,7 +202,7 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     if (!wrapped.length) wrapped.push('');
 
     canvas.width = canvasWidth;
-    canvas.height = Math.max(pad * 2 + wrapped.length * lh + lh, 500);
+    canvas.height = Math.max(pad * 2 + wrapped.length * lh + lh + footerH, 500);
 
     // Background
     ctx.fillStyle = '#f5f5f4';
@@ -176,7 +212,7 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     if (showLines) {
       ctx.strokeStyle = '#c8c5bf';
       ctx.lineWidth = 1;
-      for (let y = pad + lh; y < canvas.height - pad; y += lh) {
+      for (let y = pad + lh; y < canvas.height - pad - footerH; y += lh) {
         ctx.beginPath();
         ctx.moveTo(pad, y);
         ctx.lineTo(canvas.width - pad, y);
@@ -190,6 +226,15 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     wrapped.forEach((line, i) => {
       ctx.fillText(line, pad, pad + (i + 1) * lh);
     });
+
+    // Footer link
+    ctx.font = '14px Inter, system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(168,162,158,0.8)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(SITE_URL, canvas.width / 2, canvas.height - footerH / 2);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
 
     const url = canvas.toDataURL('image/jpeg', 0.95);
     const a = document.createElement('a');
@@ -213,9 +258,13 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
     @page{margin:2.5cm;}
     body{font-family:Calibri,Arial,sans-serif;font-size:12pt;line-height:1.625;}
     .page{white-space:pre-wrap;word-wrap:break-word;${wordLineStyle}}
+    .footer{text-align:center;color:#a8a29e;font-size:8pt;margin-top:2em;}
   </style>
 </head>
-<body><div class="page">${escapedHtml}</div></body>
+<body>
+  <div class="page">${escapedHtml}</div>
+  <div class="footer">${SITE_URL}</div>
+</body>
 </html>`;
     blobDownload(html, 'application/msword', 'doc');
   };
@@ -306,6 +355,53 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Share dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title="Share"
+                  className="h-8 px-2 gap-1 flex items-center"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <ChevronDown className="w-3 h-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={handleCopyLink} className="gap-2 cursor-pointer">
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`)} className="gap-2 cursor-pointer">
+                  <span className="w-4 h-4 flex items-center justify-center text-[#1877F2] font-bold text-sm">f</span>
+                  <span>Facebook</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openShare(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + shareUrl)}`)} className="gap-2 cursor-pointer">
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                  <span>WhatsApp</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openShare(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`)} className="gap-2 cursor-pointer">
+                  <span className="w-4 h-4 flex items-center justify-center font-bold text-xs">𝕏</span>
+                  <span>X / Twitter</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openShare(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(shareText)}`)} className="gap-2 cursor-pointer">
+                  <span className="w-4 h-4 flex items-center justify-center text-[#E60023] font-bold text-sm">P</span>
+                  <span>Pinterest</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyLink} className="gap-2 cursor-pointer">
+                  <span className="w-4 h-4 flex items-center justify-center text-[#E1306C] font-bold text-xs">IG</span>
+                  <span>Instagram (copy link)</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => openShare(`mailto:?subject=${encodeURIComponent('Check out this printable page tool')}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`)} className="gap-2 cursor-pointer">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <span>Email</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Fullscreen */}
             <Button
               variant="ghost"
@@ -329,13 +425,13 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
         </div>
 
         {/* Writing area */}
-        <div className="flex-1 overflow-hidden rounded-lg border border-border/30 w-full h-full">
+        <div className="relative flex-1 overflow-hidden rounded-lg border border-border/30 w-full h-full">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Start writing... Let your thoughts flow freely."
             autoFocus
-            className="w-full h-full resize-none bg-stone-100 border-none outline-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40 focus:ring-0 p-6 md:p-8"
+            className="w-full h-full resize-none bg-stone-100 border-none outline-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40 focus:ring-0 p-6 md:p-8 pb-10"
             style={{
               fontFamily: "'Inter', system-ui, sans-serif",
               backgroundImage: showLines
@@ -344,6 +440,15 @@ export function FocusMode({ isOpen, onClose }: FocusModeProps) {
               backgroundAttachment: 'local',
             }}
           />
+          <a
+            href="https://allprintablepages.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs text-muted-foreground/40 hover:text-primary transition-colors blur-[0.5px] hover:blur-none pointer-events-auto select-none"
+            style={{ textDecoration: 'none' }}
+          >
+            allprintablepages.com
+          </a>
         </div>
 
         {/* Footer */}

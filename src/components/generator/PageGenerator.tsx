@@ -12,7 +12,6 @@ import { ExportControls } from './ExportControls';
 import { CustomizationPanel } from './CustomizationPanel';
 import { ImageUploader } from './ImageUploader';
 import { OrientationToggle } from './OrientationToggle';
-import { FooterLink } from './FooterLink';
 import { FocusMode } from './FocusMode';
 import { SaveLoadDesign, SavedDesign } from './SaveLoadDesign';
 import { CollapsibleTextPanel } from './CollapsibleTextPanel';
@@ -23,6 +22,8 @@ import {
   FileText, PenLine, ChevronDown, ChevronUp, LayoutList,
   SlidersHorizontal, Palette, Type, Download, ChevronRight,
 } from 'lucide-react';
+
+import GoogleAd from "../Ad/GoogleAd"
 
 export function PageGenerator() {
   const [paperSize, setPaperSize] = useState<PaperSize>(
@@ -162,6 +163,23 @@ export function PageGenerator() {
     if (data.images) setImages(data.images);
   }, []);
 
+  // Load shared design from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const designParam = params.get('design');
+    if (designParam) {
+      try {
+        const design = JSON.parse(decodeURIComponent(designParam)) as SavedDesign['data'];
+        handleLoadDesign(design);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('design');
+        window.history.replaceState({}, '', url.toString());
+      } catch (e) {
+        console.error('Failed to load shared design from URL:', e);
+      }
+    }
+  }, []);
+
   const currentDesign: SavedDesign['data'] = useMemo(() => ({
     paperSizeId: paperSize.id,
     templateId: template.id,
@@ -225,6 +243,9 @@ export function PageGenerator() {
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Canvas Preview - Always visible at top on mobile, side on desktop */}
           <div className="lg:hidden">
+              <div className="w-full my-6">
+              <GoogleAd key="mobile-ad" />
+            </div>
             <CanvasPreview
               paperSize={paperSize}
               templateId={template.id}
@@ -257,6 +278,11 @@ export function PageGenerator() {
           <div className={cn('hidden lg:grid gap-6  transition-all duration-300', sidebarTab !== null ? 'lg:grid-cols-[1fr_320px]' : 'lg:grid-cols-[1fr_52px]')}>
             {/* Canvas Preview Area - Left side on desktop */}
             <main className="flex flex-col items-center">
+
+<div className="w-full my-6">
+              <GoogleAd key="desktop-ad" />
+            </div>
+
               <CanvasPreview
                 paperSize={paperSize}
                 templateId={template.id}
@@ -422,6 +448,7 @@ export function PageGenerator() {
                       textElements={textElements}
                       images={images}
                       orientation={orientation}
+                      currentDesign={currentDesign}
                     />
                   )}
                 </div>
@@ -458,7 +485,6 @@ export function PageGenerator() {
         </div>
       </div>
 
-      <FooterLink />
       <FocusMode isOpen={showFocusMode} onClose={() => setShowFocusMode(false)} />
     </div>
   );

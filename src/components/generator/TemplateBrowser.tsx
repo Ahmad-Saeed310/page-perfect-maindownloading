@@ -220,6 +220,13 @@ export function TemplateBrowser({ value, onChange, isOpen, onToggle }: TemplateB
   }
 
   return (
+    <>
+    {/* Backdrop – clicking outside collapses the panel */}
+    <div
+      className="fixed inset-0 z-[39]"
+      onClick={onToggle}
+      aria-hidden="true"
+    />
     <div className="fixed left-0 top-0 h-full w-72 sm:w-80 bg-card border-r border-border shadow-xl z-40 flex flex-col ">
 
       {/* Header */}
@@ -325,5 +332,6 @@ export function TemplateBrowser({ value, onChange, isOpen, onToggle }: TemplateB
         </div>
       )}
     </div>
+    </>
   );
 }

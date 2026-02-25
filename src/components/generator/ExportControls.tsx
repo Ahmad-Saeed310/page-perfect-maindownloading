@@ -6,7 +6,6 @@ import { TemplateConfig } from '@/lib/templates';
 import { renderForExport } from '@/lib/canvasRenderer';
 import { TextElement, CanvasImageData } from '@/lib/canvasTypes';
 import { toast } from 'sonner';
-
 interface ExportControlsProps {
   paperSize: PaperSize;
   templateId: string;
@@ -15,6 +14,7 @@ interface ExportControlsProps {
   textElements: TextElement[];
   images: CanvasImageData[];
   orientation: Orientation;
+  currentDesign?: Record<string, unknown>;
 }
 
 export function ExportControls({
@@ -26,6 +26,8 @@ export function ExportControls({
   images,
   orientation,
 }: ExportControlsProps) {
+
+  // ── PDF download ───────────────────────────────────────────────────────────
   const handleDownloadPdf = async () => {
     try {
       const { width, height } = getPdfDimensions(paperSize, orientation);
@@ -41,17 +43,6 @@ export function ExportControls({
       const imgData = canvas.toDataURL('image/png');
 
       pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-      
-      // Add clickable link at the bottom
-      const linkText = 'allprintablepages.com';
-      const linkUrl = 'https://allprintablepages.com';
-      const linkY = height - 15;
-      const linkX = width / 2;
-      
-      pdf.setFontSize(10);
-      pdf.setTextColor(150, 150, 150);
-      const textWidth = pdf.getTextWidth(linkText);
-      pdf.textWithLink(linkText, linkX - textWidth / 2, linkY, { url: linkUrl });
 
       const filename = `${templateId}-${paperSize.name.toLowerCase()}-${orientation}.pdf`;
       pdf.save(filename);
@@ -63,6 +54,7 @@ export function ExportControls({
     }
   };
 
+  // ── Print ──────────────────────────────────────────────────────────────────
   const handlePrint = async () => {
     try {
       const dims = getEffectiveDimensions(paperSize, orientation);
@@ -110,7 +102,7 @@ export function ExportControls({
 
       printWindow.document.close();
       printWindow.focus();
-      
+
       setTimeout(() => {
         printWindow.print();
       }, 250);
