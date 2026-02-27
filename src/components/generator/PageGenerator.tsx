@@ -23,7 +23,8 @@ import {
   SlidersHorizontal, Palette, Type, Download, ChevronRight,
 } from 'lucide-react';
 
-import GoogleAd from "../Ad/GoogleAd"
+// import GoogleAd from "../Ad/GoogleAd"
+import AdBanner from '../Ad/AdBanner';
 
 export function PageGenerator() {
   const [paperSize, setPaperSize] = useState<PaperSize>(
@@ -243,9 +244,7 @@ export function PageGenerator() {
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Canvas Preview - Always visible at top on mobile, side on desktop */}
           <div className="lg:hidden">
-              <div className="w-full my-6">
-              <GoogleAd key="mobile-ad" />
-            </div>
+             <AdBanner adSlot="4048800768" width={728} height={90} />
             <CanvasPreview
               paperSize={paperSize}
               templateId={template.id}
@@ -279,10 +278,10 @@ export function PageGenerator() {
             {/* Canvas Preview Area - Left side on desktop */}
             <main className="flex flex-col items-center">
 
-<div className="w-full my-6">
+{/* <div className="w-full my-6">
               <GoogleAd key="desktop-ad" />
-            </div>
-
+            </div> */}
+<AdBanner adSlot="4048800768" width={728} height={90} />
               <CanvasPreview
                 paperSize={paperSize}
                 templateId={template.id}
